@@ -267,6 +267,62 @@ class EfficientNetModel(BaseModel):
         return logits
 
 
+class InceptionResNetV2Model(BaseModel):
+    """
+    Inception-ResNet-V2 model for chest X-ray classification
+    Using timm library for Inception-ResNet-V2
+    """
+    
+    def __init__(
+        self,
+        num_classes: int = len(CHEXPERT_LABELS),
+        pretrained: bool = True,
+        dropout_rate: float = 0.2,
+        use_bn: bool = True
+    ):
+        super().__init__(num_classes)
+        
+        try:
+            import timm
+        except ImportError:
+            raise ImportError("Please install timm: pip install timm")
+        
+        # Load Inception-ResNet-V2
+        self.backbone = timm.create_model(
+            'inception_resnet_v2',
+            pretrained=pretrained,
+            num_classes=0,  # Remove classifier
+            in_chans=1  # Grayscale input
+        )
+        
+        feature_dim = 1536  # Inception-ResNet-V2 feature dimension
+        
+        # Custom classifier head
+        classifier_layers = []
+        
+        if use_bn:
+            classifier_layers.append(nn.BatchNorm1d(feature_dim))
+        
+        classifier_layers.append(nn.Dropout(dropout_rate))
+        classifier_layers.append(nn.Linear(feature_dim, num_classes))
+        
+        self.classifier = nn.Sequential(*classifier_layers)
+        
+        # Initialize classifier weights
+        if hasattr(self.classifier[-1], 'weight'):
+            nn.init.xavier_uniform_(self.classifier[-1].weight)
+            nn.init.zeros_(self.classifier[-1].bias)
+    
+    def forward(self, x):
+        # Extract features
+        features = self.backbone(x)
+        
+        # Classification
+        logits = self.classifier(features)
+        
+        return logits
+
+
 class AttentionBlock(nn.Module):
     """Attention mechanism for highlighting important regions"""
     
@@ -446,6 +502,14 @@ def create_model(
             num_classes=num_classes,
             pretrained=pretrained,
             **efficientnet_kwargs
+        )
+    elif architecture == "inception_resnet_v2":
+        # Filter kwargs for Inception-ResNet-V2
+        inception_kwargs = {k: v for k, v in kwargs.items() if k in ['dropout_rate', 'use_bn']}
+        return InceptionResNetV2Model(
+            num_classes=num_classes,
+            pretrained=pretrained,
+            **inception_kwargs
         )
     elif architecture.startswith("attention"):
         # attention_resnet50, attention_densenet121, etc.
