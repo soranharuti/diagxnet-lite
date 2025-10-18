@@ -1,192 +1,381 @@
-# DiagXNet-Lite: Chest X-ray Disease Detection 🏥
+# DiagXNet-Lite: Multi-Label Chest X-Ray Classification# DiagXNet-Lite: Chest X-ray Disease Detection 🏥
 
-**A Machine Learning Project for Medical Image Analysis**
 
----
 
-## 📚 Table of Contents
-1. [What is this project?](#what-is-this-project)
-2. [Why are we doing this?](#why-are-we-doing-this)
-3. [Key Terms Explained](#key-terms-explained)
-4. [What we built](#what-we-built)
-5. [Step-by-step process](#step-by-step-process)
-6. [Code structure](#code-structure)
-7. [Results](#results)
-8. [How to run the project](#how-to-run-the-project)
-9. [What you learned](#what-you-learned)
+A deep learning system for automated diagnosis of 14 pathologies from chest X-ray images using the CheXpert dataset. The system implements both individual models (DenseNet-121, Inception-ResNet-V2) and a stacking ensemble approach.**A Machine Learning Project for Medical Image Analysis**
 
----
 
-## 🎯 What is this project?
+
+## 🎯 Project Overview---
+
+
+
+DiagXNet-Lite classifies chest X-rays for 14 different pathological conditions:## 📚 Table of Contents
+
+- No Finding1. [What is this project?](#what-is-this-project)
+
+- Enlarged Cardiomediastinum2. [Why are we doing this?](#why-are-we-doing-this)
+
+- Cardiomegaly3. [Key Terms Explained](#key-terms-explained)
+
+- Lung Opacity4. [What we built](#what-we-built)
+
+- Lung Lesion5. [Step-by-step process](#step-by-step-process)
+
+- Edema6. [Code structure](#code-structure)
+
+- Consolidation7. [Results](#results)
+
+- Pneumonia8. [How to run the project](#how-to-run-the-project)
+
+- Atelectasis9. [What you learned](#what-you-learned)
+
+- Pneumothorax
+
+- Pleural Effusion---
+
+- Pleural Other
+
+- Fracture## 🎯 What is this project?
+
+- Support Devices
 
 **DiagXNet-Lite** is an **Artificial Intelligence (AI) system** that can look at chest X-ray images and detect diseases automatically. Think of it like having a computer "doctor" that can spot problems in X-rays!
 
-### Simple Analogy:
-Imagine you're teaching a child to recognize animals in photos. You show them thousands of pictures labeled "cat" or "dog", and eventually they learn to identify cats and dogs in new photos. Our AI works similarly - we showed it thousands of chest X-rays labeled with diseases, and now it can identify diseases in new X-rays.
+## 📊 Model Performance
 
----
+### Simple Analogy:
+
+### Mean AUROC Scores (on CheXpert validation set)Imagine you're teaching a child to recognize animals in photos. You show them thousands of pictures labeled "cat" or "dog", and eventually they learn to identify cats and dogs in new photos. Our AI works similarly - we showed it thousands of chest X-rays labeled with diseases, and now it can identify diseases in new X-rays.
+
+- **DenseNet-121**: 0.7398 ± 0.2259
+
+- **Inception-ResNet-V2**: 0.7453 ± 0.2370---
+
+- **Ensemble (Stacking)**: 0.6237 ± 0.2163
 
 ## 🤔 Why are we doing this?
 
-### Real-world Problem:
-- **Doctors are busy**: Radiologists (doctors who read X-rays) have limited time
-- **Remote areas**: Some places don't have specialized doctors
-- **Quick screening**: AI can quickly flag potentially serious cases
-- **Second opinion**: AI can help doctors catch things they might miss
+### Top Performing Conditions
 
-### Our Goal:
+| Condition | AUROC |### Real-world Problem:
+
+|-----------|-------|- **Doctors are busy**: Radiologists (doctors who read X-rays) have limited time
+
+| Pleural Effusion | 0.9079 |- **Remote areas**: Some places don't have specialized doctors
+
+| Edema | 0.9086 |- **Quick screening**: AI can quickly flag potentially serious cases
+
+| No Finding | 0.8999 |- **Second opinion**: AI can help doctors catch things they might miss
+
+| Consolidation | 0.8967 |
+
+| Lung Opacity | 0.8931 |### Our Goal:
+
 Build an AI that can:
-1. ✅ Look at a chest X-ray image
+
+## 🏗️ Project Structure1. ✅ Look at a chest X-ray image
+
 2. ✅ Detect 14 different types of diseases/conditions
-3. ✅ Tell us how confident it is about each prediction
-4. ✅ Show us where in the X-ray it's looking (like highlighting suspicious areas)
 
----
+```3. ✅ Tell us how confident it is about each prediction
 
-## 📖 Key Terms Explained (AI/ML Dictionary)
+diagxnet-lite/4. ✅ Show us where in the X-ray it's looking (like highlighting suspicious areas)
 
-### Basic AI Terms:
-- **Machine Learning (ML)**: Teaching computers to learn patterns from data
-- **Deep Learning**: A type of ML that uses "neural networks" (inspired by how brain neurons work)
-- **Neural Network**: A computer system modeled after the human brain
-- **Model**: The "brain" of our AI - the part that makes predictions
-- **Training**: The process of teaching our AI using example data
+├── configs/                 # Configuration files
 
-### Our Specific Terms:
-- **DenseNet-121**: The type of "brain architecture" we're using (like choosing a specific car model)
-- **CheXpert Dataset**: Our collection of 191,000+ chest X-ray images with disease labels
-- **Classification**: Deciding which category something belongs to (disease vs. no disease)
-- **Multi-label**: Our AI can detect multiple diseases in one X-ray simultaneously
+│   └── config.py           # Model and training configurations---
 
-### Technical Terms:
-- **AUROC**: A score (0-1) measuring how good our AI is at distinguishing diseases (1.0 = perfect)
-- **Epochs**: How many times we show the entire dataset to our AI during training
-- **Batch Size**: How many X-rays we show the AI at once (like studying 16 photos together)
+├── data/                   # Dataset directory
+
+│   └── chexpert_small/     # CheXpert dataset## 📖 Key Terms Explained (AI/ML Dictionary)
+
+├── evaluation_results/     # Evaluation outputs and visualizations
+
+├── models/                 # Trained model checkpoints### Basic AI Terms:
+
+│   ├── densenet121_best.pth- **Machine Learning (ML)**: Teaching computers to learn patterns from data
+
+│   ├── inception_resnet_v2_best.pth- **Deep Learning**: A type of ML that uses "neural networks" (inspired by how brain neurons work)
+
+│   └── ensemble_best.pth- **Neural Network**: A computer system modeled after the human brain
+
+├── notebooks/              # Jupyter notebooks for exploration- **Model**: The "brain" of our AI - the part that makes predictions
+
+├── scripts/                # Main training and evaluation scripts- **Training**: The process of teaching our AI using example data
+
+│   ├── train_ensemble.py
+
+│   ├── evaluate_ensemble.py### Our Specific Terms:
+
+│   └── evaluate_single_model.py- **DenseNet-121**: The type of "brain architecture" we're using (like choosing a specific car model)
+
+├── src/                    # Source code modules- **CheXpert Dataset**: Our collection of 191,000+ chest X-ray images with disease labels
+
+│   ├── data/              # Dataset handling- **Classification**: Deciding which category something belongs to (disease vs. no disease)
+
+│   ├── models/            # Model architectures- **Multi-label**: Our AI can detect multiple diseases in one X-ray simultaneously
+
+│   ├── training/          # Training utilities
+
+│   └── evaluation/        # Evaluation metrics### Technical Terms:
+
+├── requirements.txt        # Python dependencies- **AUROC**: A score (0-1) measuring how good our AI is at distinguishing diseases (1.0 = perfect)
+
+└── README.md              # This file- **Epochs**: How many times we show the entire dataset to our AI during training
+
+```- **Batch Size**: How many X-rays we show the AI at once (like studying 16 photos together)
+
 - **Learning Rate**: How fast our AI learns (too fast = sloppy, too slow = takes forever)
-- **Grad-CAM**: A technique to show us where the AI is "looking" in the image
 
-### Medical Terms:
+## 🚀 Quick Start- **Grad-CAM**: A technique to show us where the AI is "looking" in the image
+
+
+
+### 1. Installation### Medical Terms:
+
 - **Pathology**: Disease or abnormal condition
-- **Radiologist**: Doctor who specializes in reading medical images
-- **Cardiomegaly**: Enlarged heart
-- **Pneumothorax**: Collapsed lung
-- **Atelectasis**: Partial lung collapse
+
+```bash- **Radiologist**: Doctor who specializes in reading medical images
+
+# Clone the repository- **Cardiomegaly**: Enlarged heart
+
+git clone https://github.com/soranharuti/diagxnet-lite.git- **Pneumothorax**: Collapsed lung
+
+cd diagxnet-lite- **Atelectasis**: Partial lung collapse
+
 - **Consolidation**: Lung tissue filled with liquid/infection
 
----
+# Create virtual environment
+
+python -m venv venv---
+
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 ## 🏗️ What we built
 
-### The Complete System:
+# Install dependencies
+
+pip install -r requirements.txt### The Complete System:
 
 ```
-📁 DiagXNet-Lite Project
-├── 🧠 AI Model (DenseNet-121)
-├── 📊 Data Processing (191K+ X-rays)
-├── 🎯 Training System (5 epochs)
-├── 📈 Evaluation Metrics (AUROC, accuracy, etc.)
-├── 🔍 Visualization (Grad-CAM heatmaps)
-└── 📋 Results & Reports
+
 ```
+
+### 2. Dataset Setup📁 DiagXNet-Lite Project
+
+├── 🧠 AI Model (DenseNet-121)
+
+Download the CheXpert dataset:├── 📊 Data Processing (191K+ X-rays)
+
+```bash├── 🎯 Training System (5 epochs)
+
+# Download from: https://stanfordmlgroup.github.io/competitions/chexpert/├── 📈 Evaluation Metrics (AUROC, accuracy, etc.)
+
+# Extract to: data/chexpert_small/├── 🔍 Visualization (Grad-CAM heatmaps)
+
+```└── 📋 Results & Reports
+
+```
+
+### 3. Training
 
 ### What each part does:
 
-1. **AI Model (DenseNet-121)**:
-   - Pre-trained on millions of regular photos (like a smart starting point)
-   - Modified to work with medical X-rays
+Train the ensemble model (DenseNet-121 + Inception-ResNet-V2):
+
+```bash1. **AI Model (DenseNet-121)**:
+
+python scripts/train_ensemble.py --epochs-model2 5 --epochs-meta 3   - Pre-trained on millions of regular photos (like a smart starting point)
+
+```   - Modified to work with medical X-rays
+
    - Can detect 14 different chest conditions
 
-2. **Data Processing**:
-   - Loads 191,027 chest X-ray images
-   - Handles uncertain/missing labels properly
+Options:
+
+- `--epochs-model2`: Number of epochs for Inception-ResNet-V2 (default: 5)2. **Data Processing**:
+
+- `--epochs-meta`: Number of epochs for meta-learner (default: 3)   - Loads 191,027 chest X-ray images
+
+- `--lr`: Learning rate (default: 1e-4)   - Handles uncertain/missing labels properly
+
    - Converts images to the right format for AI
 
+### 4. Evaluation
+
 3. **Training System**:
-   - Teaches the AI using labeled examples
-   - Runs for 5 complete cycles through all data
-   - Saves the "smartest" version of the AI
+
+Evaluate all models and generate comparison reports:   - Teaches the AI using labeled examples
+
+```bash   - Runs for 5 complete cycles through all data
+
+python scripts/evaluate_ensemble.py   - Saves the "smartest" version of the AI
+
+```
 
 4. **Evaluation**:
-   - Tests how well our AI performs
-   - Compares predictions with real doctor diagnoses
-   - Measures accuracy, reliability, and confidence
 
-5. **Visualization**:
+This generates:   - Tests how well our AI performs
+
+- AUROC and AUPRC comparison plots   - Compares predictions with real doctor diagnoses
+
+- Performance improvement heatmaps   - Measures accuracy, reliability, and confidence
+
+- Detailed metrics CSV files
+
+- Comprehensive evaluation report5. **Visualization**:
+
    - Creates heatmaps showing where AI looks
-   - Helps doctors understand AI decisions
-   - Builds trust in the system
 
----
+Evaluate a single model:   - Helps doctors understand AI decisions
 
-## 📋 Step-by-step Process
+```bash   - Builds trust in the system
 
-### Phase 1: Project Setup
-```bash
-# What we did:
-1. Created project folder structure
-2. Downloaded CheXpert dataset (191K+ X-rays)
-3. Set up Python environment with required tools
+python scripts/evaluate_single_model.py
+
+```---
+
+
+
+## 📈 Results## 📋 Step-by-step Process
+
+
+
+Evaluation results are saved in `evaluation_results/ensemble_evaluation/`:### Phase 1: Project Setup
+
+- `ensemble_auroc_comparison.png` - AUROC comparison across all conditions```bash
+
+- `ensemble_auprc_comparison.png` - AUPRC comparison# What we did:
+
+- `ensemble_improvement_heatmap.png` - Performance improvements visualization1. Created project folder structure
+
+- `ensemble_evaluation_report.txt` - Detailed metrics report2. Downloaded CheXpert dataset (191K+ X-rays)
+
+- CSV files with per-condition metrics3. Set up Python environment with required tools
+
 4. Configured the system for Apple M3 chip acceleration
-```
 
-### Phase 2: Data Preparation
-```python
-# What the code does:
+## 🔧 Model Architecture```
+
+
+
+### Individual Models### Phase 2: Data Preparation
+
+- **DenseNet-121**: Pre-trained on ImageNet, fine-tuned for multi-label classification```python
+
+- **Inception-ResNet-V2**: Pre-trained hybrid architecture combining Inception and ResNet# What the code does:
+
 1. Reads CSV file with X-ray locations and disease labels
-2. Loads and processes images (resize, normalize, convert to grayscale)
-3. Handles uncertain labels (some X-rays have unclear diagnoses)
-4. Splits data: 80% for training, 20% for testing
-```
+
+### Ensemble Architecture2. Loads and processes images (resize, normalize, convert to grayscale)
+
+- **Base Models**: DenseNet-121 + Inception-ResNet-V23. Handles uncertain labels (some X-rays have unclear diagnoses)
+
+- **Meta-Learner**: Neural network that learns optimal combination of base model predictions4. Splits data: 80% for training, 20% for testing
+
+- **Input**: Concatenated predictions from both base models (28 features)```
+
+- **Output**: Final predictions for 14 conditions
 
 ### Phase 3: Model Creation
-```python
+
+## 📦 Key Features```python
+
 # Our AI architecture:
-1. Started with DenseNet-121 (pre-trained on ImageNet)
-2. Modified first layer for grayscale X-rays (instead of color photos)
-3. Replaced final layer to predict 14 diseases (instead of 1000 objects)
-4. Added dropout and batch normalization for better performance
-```
+
+- ✅ Multi-label classification for 14 chest X-ray pathologies1. Started with DenseNet-121 (pre-trained on ImageNet)
+
+- ✅ Support for uncertainty handling in labels (ignore/positive/negative policies)2. Modified first layer for grayscale X-rays (instead of color photos)
+
+- ✅ Comprehensive evaluation metrics (AUROC, AUPRC, F1, Precision, Recall)3. Replaced final layer to predict 14 diseases (instead of 1000 objects)
+
+- ✅ Automated model checkpointing and best model selection4. Added dropout and batch normalization for better performance
+
+- ✅ GPU acceleration (CUDA, MPS for Apple Silicon)```
+
+- ✅ Visualization tools for performance analysis
 
 ### Phase 4: Training Process
-```python
+
+## 🛠️ Technical Stack```python
+
 # Teaching the AI:
-1. Show AI batches of 16 X-rays at a time
-2. AI makes predictions
-3. Compare predictions with correct answers
-4. Adjust AI's "brain" to reduce mistakes
-5. Repeat for 5 complete cycles (epochs)
-6. Save the best version
+
+- **Framework**: PyTorch 2.0+1. Show AI batches of 16 X-rays at a time
+
+- **Models**: torchvision, timm2. AI makes predictions
+
+- **Data Processing**: pandas, numpy, PIL3. Compare predictions with correct answers
+
+- **Evaluation**: scikit-learn4. Adjust AI's "brain" to reduce mistakes
+
+- **Visualization**: matplotlib, seaborn5. Repeat for 5 complete cycles (epochs)
+
+- **Hardware Support**: CUDA, MPS (Apple Silicon), CPU6. Save the best version
+
 ```
+
+## 📝 Configuration
 
 ### Phase 5: Evaluation
-```python
-# Testing performance:
-1. Run AI on 38,205 test X-rays
-2. Calculate accuracy metrics (AUROC, precision, recall)
-3. Find optimal decision thresholds
-4. Test calibration (how confident should AI be?)
+
+Edit `configs/config.py` to customize:```python
+
+- Data paths# Testing performance:
+
+- Model architectures1. Run AI on 38,205 test X-rays
+
+- Training hyperparameters2. Calculate accuracy metrics (AUROC, precision, recall)
+
+- Image transformations3. Find optimal decision thresholds
+
+- Class weights for imbalanced data4. Test calibration (how confident should AI be?)
+
 5. Apply temperature scaling to improve confidence
-```
 
-### Phase 6: Visualization
+## 🤝 Contributing```
+
+
+
+Contributions are welcome! Please feel free to submit a Pull Request.### Phase 6: Visualization
+
 ```python
-# Understanding AI decisions:
+
+## 📄 License# Understanding AI decisions:
+
 1. Generate Grad-CAM heatmaps for 12 example cases
-2. Show where AI focuses attention
+
+This project is licensed under the MIT License.2. Show where AI focuses attention
+
 3. Create summary visualizations
-4. Validate AI is looking at medically relevant areas
+
+## 🔗 References4. Validate AI is looking at medically relevant areas
+
 ```
 
----
+- [CheXpert Dataset](https://stanfordmlgroup.github.io/competitions/chexpert/)
+
+- [DenseNet Paper](https://arxiv.org/abs/1608.06993)---
+
+- [Inception-ResNet-v2 Paper](https://arxiv.org/abs/1602.07261)
 
 ## 📁 Code Structure
 
+## 📧 Contact
+
 ### Main Files Explained:
 
+For questions or issues, please open an issue on GitHub or contact the maintainer.
+
 ```
-diagxnet-lite/
+
+---diagxnet-lite/
+
 │
-├── 📄 README.md                 # This file - explains everything!
+
+**Note**: This is a research/educational project. The models should not be used for clinical diagnosis without proper validation and regulatory approval.├── 📄 README.md                 # This file - explains everything!
+
 ├── 📄 epp.md                   # Your project proposal
 ├── 📄 diagnostic.py            # Tests if everything works
 ├── 📄 run_experiment.py        # Runs the complete experiment

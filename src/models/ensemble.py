@@ -98,7 +98,8 @@ class StackingEnsemble(nn.Module):
         model2: nn.Module,
         num_classes: int = 14,
         meta_learner_type: str = "neural_network",
-        freeze_base_models: bool = True
+        freeze_base_models: bool = True,
+        hidden_dim: int = 64
     ):
         """
         Args:
@@ -107,6 +108,7 @@ class StackingEnsemble(nn.Module):
             num_classes: Number of output classes
             meta_learner_type: Type of meta-learner
             freeze_base_models: Whether to freeze base model weights during meta-training
+            hidden_dim: Hidden dimension for meta-learner neural network
         """
         super().__init__()
         
@@ -126,7 +128,8 @@ class StackingEnsemble(nn.Module):
         self.meta_learner = MetaLearner(
             num_base_models=2,
             num_classes=num_classes,
-            meta_learner_type=meta_learner_type
+            meta_learner_type=meta_learner_type,
+            hidden_dim=hidden_dim
         )
     
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, Dict[str, torch.Tensor]]:
@@ -281,7 +284,8 @@ def create_ensemble(
             model2=model2,
             num_classes=num_classes,
             meta_learner_type=kwargs.get('meta_learner_type', 'neural_network'),
-            freeze_base_models=kwargs.get('freeze_base_models', True)
+            freeze_base_models=kwargs.get('freeze_base_models', True),
+            hidden_dim=kwargs.get('hidden_dim', 64)
         )
     elif ensemble_type == "weighted_average":
         return WeightedAverageEnsemble(

@@ -346,6 +346,76 @@ class AttentionBlock(nn.Module):
         return attended_features, attention_weights
 
 
+class VisionTransformerModel(BaseModel):
+    """
+    Vision Transformer (ViT) model for chest X-ray classification
+    
+    Uses transformer architecture with patch embeddings
+    """
+    
+    def __init__(
+        self,
+        architecture: str = "vit_b_16",
+        num_classes: int = len(CHEXPERT_LABELS),
+        pretrained: bool = True,
+        dropout_rate: float = 0.2
+    ):
+        super().__init__(num_classes)
+        
+        # Get Vision Transformer backbone
+        if architecture == "vit_b_16":
+            from torchvision.models import vit_b_16, ViT_B_16_Weights
+            if pretrained:
+                self.backbone = vit_b_16(weights=ViT_B_16_Weights.IMAGENET1K_V1)
+            else:
+                self.backbone = vit_b_16(weights=None)
+            feature_dim = 768
+        elif architecture == "vit_b_32":
+            from torchvision.models import vit_b_32, ViT_B_32_Weights
+            if pretrained:
+                self.backbone = vit_b_32(weights=ViT_B_32_Weights.IMAGENET1K_V1)
+            else:
+                self.backbone = vit_b_32(weights=None)
+            feature_dim = 768
+        elif architecture == "vit_l_16":
+            from torchvision.models import vit_l_16, ViT_L_16_Weights
+            if pretrained:
+                self.backbone = vit_l_16(weights=ViT_L_16_Weights.IMAGENET1K_V1)
+            else:
+                self.backbone = vit_l_16(weights=None)
+            feature_dim = 1024
+        else:
+            raise ValueError(f"Unsupported ViT architecture: {architecture}")
+        
+        # Modify conv_proj to accept grayscale input
+        original_conv = self.backbone.conv_proj
+        self.backbone.conv_proj = nn.Conv2d(
+            1, original_conv.out_channels,
+            kernel_size=original_conv.kernel_size,
+            stride=original_conv.stride,
+            padding=original_conv.padding,
+            bias=original_conv.bias is not None
+        )
+        
+        # Copy weights for first channel if pretrained
+        if pretrained:
+            with torch.no_grad():
+                self.backbone.conv_proj.weight[:, 0, :, :] = original_conv.weight.mean(dim=1)
+        
+        # Replace classifier head
+        self.backbone.heads = nn.Sequential(
+            nn.Dropout(dropout_rate),
+            nn.Linear(feature_dim, num_classes)
+        )
+        
+        # Initialize classifier weights
+        nn.init.xavier_uniform_(self.backbone.heads[-1].weight)
+        nn.init.zeros_(self.backbone.heads[-1].bias)
+    
+    def forward(self, x):
+        return self.backbone(x)
+
+
 class AttentionModel(BaseModel):
     """
     Attention-based model for interpretable chest X-ray classification
@@ -519,6 +589,15 @@ def create_model(
             num_classes=num_classes,
             pretrained=pretrained,
             **kwargs
+        )
+    elif architecture.startswith("vit"):
+        # vit_b_16, vit_b_32, vit_l_16
+        vit_kwargs = {k: v for k, v in kwargs.items() if k in ['dropout_rate']}
+        return VisionTransformerModel(
+            architecture=architecture,
+            num_classes=num_classes,
+            pretrained=pretrained,
+            **vit_kwargs
         )
     else:
         raise ValueError(f"Unsupported architecture: {architecture}")
