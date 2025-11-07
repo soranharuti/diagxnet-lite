@@ -72,3 +72,11 @@ Thumbs.db
 
 # Cleanup tracking (temporary file, not needed in repo)
 CLEANUP_SUMMARY.md
+
+evaluation_results/
+project_report/
+models/
+project_comparison/
+project_report/
+docs/
+
