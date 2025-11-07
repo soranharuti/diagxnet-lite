@@ -16,52 +16,59 @@ parts/
 sdist/
 var/
 wheels/
+pip-wheel-metadata/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Virtual Environment
 venv/
-env/
 ENV/
-venv.bak/
-
-# Data files
-data/
-*.csv
-*.h5
-*.hdf5
-
-# Model files (large)
-*.pth
-*.pkl
-*.pickle
-models/*.pth
-results/
+env/
+.venv
 
 # Jupyter Notebook
 .ipynb_checkpoints
-*.ipynb_checkpoints/
+*.ipynb_checkpoints
 
-# IDE
-.vscode/
+# PyCharm
 .idea/
+
+# VSCode
+.vscode/
+
+# Model checkpoints (large files - but keep README files)
+*.pth
+*.pt
+*.ckpt
+*.h5
+*.hdf5
+
+# Data - only ignore large image directories, keep CSV files
+data/chexpert_small/CheXpert-v1.0-small/train/
+data/chexpert_small/CheXpert-v1.0-small/valid/
+
+# Logs and temporary outputs
+*.log
+logs/
+training_output.log
+
+# TensorBoard (large files in results folder)
+results/tensorboard/
+
+# OS
+.DS_Store
+Thumbs.db
 *.swp
 *.swo
 *~
-
-# Mac
-.DS_Store
-
-# Tensorboard
-tensorboard/
-runs/
-
-# Logs
-*.log
-logs/
 
 # Temporary files
 *.tmp
 *.temp
 .cache/
+
+# Cleanup tracking (temporary file, not needed in repo)
+CLEANUP_SUMMARY.md

@@ -11,7 +11,30 @@ import torch
 
 PROJECT_ROOT = Path(__file__).parent.parent
 DATA_ROOT = PROJECT_ROOT / "data" / "chexpert_small"
-CHEXPERT_ROOT = DATA_ROOT / "CheXpert-v1.0-small"
+
+# Autodetect the CheXpert subfolder that contains the CSVs
+_candidates = [
+    DATA_ROOT / "chexpert",
+    DATA_ROOT / "CheXpert-v1.0-small",
+]
+
+_detected = None
+for candidate in _candidates:
+    if (candidate / "train.csv").exists() and (candidate / "valid.csv").exists():
+        _detected = candidate
+        break
+
+if _detected is None:
+    # Fallback: search any subdirectory under DATA_ROOT that has train.csv
+    try:
+        _detected = next(
+            p for p in DATA_ROOT.iterdir()
+            if p.is_dir() and (p / "train.csv").exists()
+        )
+    except StopIteration:
+        _detected = DATA_ROOT  # Last resort
+
+CHEXPERT_ROOT = _detected
 MODELS_DIR = PROJECT_ROOT / "models"
 RESULTS_DIR = PROJECT_ROOT / "results"
 
@@ -102,15 +125,30 @@ TRAINING_CONFIG = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def get_device():
-    """Get the best available device"""
-    if torch.backends.mps.is_available():
-        return torch.device("mps")
-    elif torch.cuda.is_available():
+    """Get the best available device (cross-platform)"""
+    # Check for CUDA first (NVIDIA GPU) - Windows/Linux
+    if torch.cuda.is_available():
         return torch.device("cuda")
+    # Check for MPS (Apple Silicon) - Mac
+    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        return torch.device("mps")
     else:
         return torch.device("cpu")
 
 DEVICE = get_device()
+
+# Import platform-specific settings
+try:
+    from .platform_config import OPTIMAL_NUM_WORKERS, PLATFORM_SETTINGS
+except ImportError:
+    # Fallback if platform_config not available
+    import platform
+    OPTIMAL_NUM_WORKERS = 0 if platform.system() == 'Windows' else 4
+    PLATFORM_SETTINGS = {
+        'num_workers': OPTIMAL_NUM_WORKERS,
+        'pin_memory': torch.cuda.is_available(),
+        'persistent_workers': OPTIMAL_NUM_WORKERS > 0,
+    }
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # EVALUATION METRICS

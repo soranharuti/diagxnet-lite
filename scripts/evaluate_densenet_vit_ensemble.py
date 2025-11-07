@@ -71,7 +71,7 @@ def evaluate_model(model, dataloader, device, model_name="Model"):
         valid_mask = all_masks[:, i] == 1
         
         if valid_mask.sum() == 0:
-            print(f"  ⚠️  {label}: No valid samples")
+            print(f"  [WARN] {label}: No valid samples")
             auroc_scores.append(np.nan)
             auprc_scores.append(np.nan)
             continue
@@ -81,7 +81,7 @@ def evaluate_model(model, dataloader, device, model_name="Model"):
         
         # Check if we have both classes
         if len(np.unique(y_true)) < 2:
-            print(f"  ⚠️  {label}: Only one class present")
+            print(f"  [WARN] {label}: Only one class present")
             auroc_scores.append(np.nan)
             auprc_scores.append(np.nan)
             continue
@@ -91,9 +91,9 @@ def evaluate_model(model, dataloader, device, model_name="Model"):
             auprc = average_precision_score(y_true, y_pred)
             auroc_scores.append(auroc)
             auprc_scores.append(auprc)
-            print(f"  ✓ {label:20s} AUROC: {auroc:.4f}  AUPRC: {auprc:.4f}")
+            print(f"  [OK] {label:20s} AUROC: {auroc:.4f}  AUPRC: {auprc:.4f}")
         except Exception as e:
-            print(f"  ✗ {label}: Error - {e}")
+            print(f"  [ERROR] {label}: Error - {e}")
             auroc_scores.append(np.nan)
             auprc_scores.append(np.nan)
     
@@ -101,10 +101,10 @@ def evaluate_model(model, dataloader, device, model_name="Model"):
     mean_auroc = np.nanmean(auroc_scores)
     mean_auprc = np.nanmean(auprc_scores)
     
-    print(f"\n{'─'*60}")
+    print(f"\n{'-'*60}")
     print(f"Mean AUROC: {mean_auroc:.4f}")
     print(f"Mean AUPRC: {mean_auprc:.4f}")
-    print(f"{'─'*60}")
+    print(f"{'-'*60}")
     
     return {
         'model_name': model_name,
@@ -201,7 +201,7 @@ def plot_comparison(results_list, output_dir):
     plt.savefig(output_dir / 'improvement_heatmap.png', dpi=300, bbox_inches='tight')
     plt.close()
     
-    print(f"\n✓ Plots saved to {output_dir}")
+    print(f"\n[OK] Plots saved to {output_dir}")
 
 
 def save_results(results_list, output_dir):
@@ -238,14 +238,14 @@ def save_results(results_list, output_dir):
                     f.write(f"  {label:20s} AUROC: {auroc:.4f}  AUPRC: {auprc:.4f}\n")
             f.write("\n")
     
-    print(f"✓ Results saved to {output_dir}")
+    print(f"[OK] Results saved to {output_dir}")
 
 
 def main():
     print("""
-╔═══════════════════════════════════════════════════════════════════════════╗
-║          DENSENET-121 + VISION TRANSFORMER ENSEMBLE EVALUATION            ║
-╚═══════════════════════════════════════════════════════════════════════════╝
+================================================================================
+          DENSENET-121 + VISION TRANSFORMER ENSEMBLE EVALUATION
+================================================================================
     """)
     
     device = get_device()
@@ -256,13 +256,17 @@ def main():
     print("LOADING VALIDATION DATA")
     print("="*80)
     
-    valid_csv = CHEXPERT_ROOT / "valid" / "valid.csv"
+    valid_csv = CHEXPERT_ROOT / "valid.csv"
     val_transform = get_val_transforms()
     val_dataset = CheXpertDataset(valid_csv, DATA_ROOT, val_transform, "ignore", False)
-    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False, 
-                           num_workers=4, pin_memory=True)
     
-    print(f"✓ Validation samples: {len(val_dataset):,}")
+    # Use platform-optimized settings
+    from configs.platform_config import OPTIMAL_NUM_WORKERS
+    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False, 
+                           num_workers=OPTIMAL_NUM_WORKERS, 
+                           pin_memory=torch.cuda.is_available())
+    
+    print(f"[OK] Validation samples: {len(val_dataset):,}")
     
     # Load models
     print("\n" + "="*80)
@@ -272,8 +276,8 @@ def main():
     models_to_evaluate = {}
     
     # 1. DenseNet-121
-    print("\n📥 Loading DenseNet-121...")
-    densenet_path = 'models/densenet121_inception_stacking/base_models/densenet121_best.pth'
+    print("\n[LOADING] DenseNet-121...")
+    densenet_path = 'models/densenet_vit_stacking/base_models/densenet121_best.pth'
     densenet = create_model("densenet121", num_classes=14, pretrained=False, dropout_rate=0.2)
     checkpoint = torch.load(densenet_path, map_location=device)
     if 'model_state_dict' in checkpoint:
@@ -283,10 +287,10 @@ def main():
     densenet = densenet.to(device)
     densenet.eval()
     models_to_evaluate['DenseNet-121'] = densenet
-    print("  ✓ DenseNet-121 loaded")
+    print("  [OK] DenseNet-121 loaded")
     
     # 2. Vision Transformer
-    print("\n📥 Loading Vision Transformer...")
+    print("\n[LOADING] Vision Transformer...")
     vit_path = 'models/densenet_vit_stacking/base_models/vit_b_16_best.pth'
     vit = create_model("vit_b_16", num_classes=14, pretrained=False, dropout_rate=0.2)
     checkpoint = torch.load(vit_path, map_location=device)
@@ -297,24 +301,24 @@ def main():
     vit = vit.to(device)
     vit.eval()
     models_to_evaluate['Vision Transformer'] = vit
-    print("  ✓ Vision Transformer loaded")
+    print("  [OK] Vision Transformer loaded")
     
     # 3. Ensemble
-    print("\n📥 Loading Ensemble...")
+    print("\n[LOADING] Ensemble...")
     ensemble_path = 'models/densenet_vit_stacking/ensemble/ensemble_best.pth'
     ensemble = create_ensemble(
         model1=densenet,
         model2=vit,
         ensemble_type="stacking",
         num_classes=14,
-        hidden_dim=64  # Must match training configuration
+        hidden_dim=256  # Must match training configuration
     )
     checkpoint = torch.load(ensemble_path, map_location=device)
     ensemble.load_state_dict(checkpoint['ensemble_state_dict'])
     ensemble = ensemble.to(device)
     ensemble.eval()
     models_to_evaluate['Ensemble'] = ensemble
-    print("  ✓ Ensemble loaded")
+    print("  [OK] Ensemble loaded")
     
     # Evaluate all models
     print("\n" + "="*80)
@@ -339,7 +343,7 @@ def main():
         print(f"\n{results['model_name']:25s} Mean AUROC: {results['mean_auroc']:.4f}  Mean AUPRC: {results['mean_auprc']:.4f}")
     
     print("\n" + "="*80)
-    print("🎉 EVALUATION COMPLETED!")
+    print("EVALUATION COMPLETED!")
     print("="*80)
     print(f"\nResults saved to: {output_dir}")
 
